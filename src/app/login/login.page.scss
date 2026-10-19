@@ -1,0 +1,25 @@
+.motivo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary-contrast);
+
+  ion-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.ayuda {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+}

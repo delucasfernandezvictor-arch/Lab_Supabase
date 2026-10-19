@@ -2,6 +2,10 @@ import { Injectable, computed, signal } from '@angular/core';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 import { Cliente, UserRole } from '../models/cliente';
+import { Imagen } from '../models/imagen';
+
+const BUCKET = 'galeria';
+const EXTENSIONES_IMAGEN = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
 @Injectable({
   providedIn: 'root',
@@ -45,9 +49,10 @@ export class SupabaseService {
   }
 
   async logout() {
-    await this.supabase.auth.signOut();
+    // Primero se limpia la interfaz y luego se cierra la sesión en Supabase
     this.currentUser.set(null);
     this.userRole.set(null);
+    await this.supabase.auth.signOut();
   }
 
   // Lee el rol de la tabla profiles. Si no hay fila, el usuario es 'user' (solo lectura)
@@ -80,12 +85,34 @@ export class SupabaseService {
   }
 
   async updateCliente(id: number, cliente: Partial<Cliente>): Promise<void> {
-    const { error } = await this.supabase.from('clientes').update(cliente).eq('id', id);
+    const { data, error } = await this.supabase.from('clientes').update(cliente).eq('id', id).select();
     if (error) throw error;
+    if (!data?.length) throw new Error('Sin permisos para actualizar (RLS)');
   }
 
   async deleteCliente(id: number): Promise<void> {
-    const { error } = await this.supabase.from('clientes').delete().eq('id', id);
+    // Con RLS, un DELETE bloqueado no da error: simplemente no borra filas.
+    // Pedimos la fila borrada para detectar ese caso.
+    const { data, error } = await this.supabase.from('clientes').delete().eq('id', id).select();
     if (error) throw error;
+    if (!data?.length) throw new Error('Sin permisos para borrar (RLS)');
+  }
+
+  // --- STORAGE: GALERÍA ---
+  // Listar requiere una política SELECT en storage.objects aunque el bucket sea público
+  async getImagenes(): Promise<Imagen[]> {
+    const { data, error } = await this.supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+    if (error) throw error;
+
+    return (data ?? [])
+      .filter((f) => EXTENSIONES_IMAGEN.test(f.name))
+      .map((f) => ({
+        nombre: f.name,
+        url: this.supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
+        tamano: f.metadata?.['size'] ?? 0,
+        created_at: f.created_at ?? '',
+      }));
   }
 }

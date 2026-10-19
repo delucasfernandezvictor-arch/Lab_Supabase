@@ -2,12 +2,19 @@
   <ion-toolbar color="primary">
     <ion-title>Lab Supabase - Gestión de Clientes</ion-title>
     <ion-buttons slot="end">
-      <ion-badge [color]="isAdmin() ? 'warning' : 'light'" class="role-badge">
-        {{ userRole() ?? '...' }}
-      </ion-badge>
-      <ion-button (click)="logout()" aria-label="Cerrar sesión">
-        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
-      </ion-button>
+      @if (user()) {
+        <ion-badge [color]="isAdmin() ? 'warning' : 'light'" class="role-badge">
+          {{ userRole() ?? '...' }}
+        </ion-badge>
+        <ion-button (click)="logout()" aria-label="Cerrar sesión">
+          <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button (click)="openLogin()">
+          <ion-icon slot="start" name="log-in-outline"></ion-icon>
+          Entrar
+        </ion-button>
+      }
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -17,16 +24,20 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <p class="user-info">Sesión: <strong>{{ user()?.email }}</strong></p>
+  <p class="user-info">
+    @if (user()) { Sesión: <strong>{{ user()?.email }}</strong> }
+    @else { Modo consulta: se pedirá login al insertar, editar o borrar. }
+  </p>
 
   <ion-grid>
     <ion-row>
-      <!-- FORMULARIO REACTIVO (Solo visible para admins) -->
-      @if (isAdmin()) {
+      <!-- FORMULARIO REACTIVO (sin sesión: pide login al guardar; con sesión: solo admins) -->
+      @if (canWrite()) {
         <ion-col size="12" size-lg="4">
           <ion-card>
             <ion-card-header>
               <ion-card-title>{{ editingId() ? 'Editar Cliente' : 'Nuevo Cliente' }}</ion-card-title>
+              @if (!user()) { <ion-card-subtitle>Se pedirá login al guardar</ion-card-subtitle> }
             </ion-card-header>
             <ion-card-content>
               <form [formGroup]="clienteForm" (ngSubmit)="saveCliente()">
@@ -57,14 +68,14 @@
       }
 
       <!-- LISTA DE CLIENTES -->
-      <ion-col size="12" [attr.size-lg]="isAdmin() ? 8 : 12">
+      <ion-col size="12" [attr.size-lg]="canWrite() ? 8 : 12">
         <ion-list lines="full">
           <ion-list-header>
             <ion-label>Listado de Clientes ({{ clientes().length }})</ion-label>
           </ion-list-header>
 
           @for (cliente of clientes(); track cliente.id) {
-            <ion-item-sliding #sliding [disabled]="!isAdmin()">
+            <ion-item-sliding #sliding [disabled]="!canWrite()">
               <ion-item>
                 <ion-label>
                   <h2>{{ cliente.nombre }}</h2>
@@ -77,7 +88,7 @@
                 <ion-note slot="end">#{{ cliente.id }}</ion-note>
 
                 <!-- Botones visibles en escritorio (Solo Administradores) -->
-                @if (isAdmin()) {
+                @if (canWrite()) {
                   <ion-buttons slot="end" class="desktop-actions">
                     <ion-button color="primary" (click)="editCliente(cliente)" aria-label="Editar">
                       <ion-icon slot="icon-only" name="create-outline"></ion-icon>
@@ -90,7 +101,7 @@
               </ion-item>
 
               <!-- Opciones al deslizar en móvil (Solo Administradores) -->
-              @if (isAdmin()) {
+              @if (canWrite()) {
                 <ion-item-options side="end">
                   <ion-item-option color="primary" (click)="editCliente(cliente, sliding)">
                     <ion-icon slot="icon-only" name="create-outline"></ion-icon>
