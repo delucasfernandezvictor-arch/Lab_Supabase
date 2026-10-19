@@ -1,0 +1,20 @@
+.role-badge {
+  margin-right: 8px;
+  text-transform: uppercase;
+}
+
+.user-info {
+  margin: 0 8px;
+  color: var(--ion-color-medium);
+}
+
+ion-label p ion-icon {
+  vertical-align: middle;
+}
+
+// En móvil se usa el deslizamiento (ion-item-sliding); en escritorio, botones visibles
+@media (max-width: 767px) {
+  .desktop-actions {
+    display: none;
+  }
+}

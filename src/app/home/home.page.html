@@ -1,0 +1,120 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Lab Supabase - Gestión de Clientes</ion-title>
+    <ion-buttons slot="end">
+      <ion-badge [color]="isAdmin() ? 'warning' : 'light'" class="role-badge">
+        {{ userRole() ?? '...' }}
+      </ion-badge>
+      <ion-button (click)="logout()" aria-label="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <p class="user-info">Sesión: <strong>{{ user()?.email }}</strong></p>
+
+  <ion-grid>
+    <ion-row>
+      <!-- FORMULARIO REACTIVO (Solo visible para admins) -->
+      @if (isAdmin()) {
+        <ion-col size="12" size-lg="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>{{ editingId() ? 'Editar Cliente' : 'Nuevo Cliente' }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <form [formGroup]="clienteForm" (ngSubmit)="saveCliente()">
+                <ion-input class="ion-margin-bottom" fill="outline" label="Nombre" labelPlacement="stacked"
+                  type="text" formControlName="nombre" errorText="Obligatorio, mínimo 3 caracteres">
+                </ion-input>
+                <ion-input class="ion-margin-bottom" fill="outline" label="Ciudad" labelPlacement="stacked"
+                  type="text" formControlName="ciudad" errorText="La ciudad es obligatoria">
+                </ion-input>
+                <ion-input fill="outline" label="Fecha de alta" labelPlacement="stacked"
+                  type="date" formControlName="fecha_de_alta" errorText="La fecha es obligatoria">
+                </ion-input>
+
+                <div class="ion-margin-top">
+                  <ion-button type="submit" expand="block" [disabled]="clienteForm.invalid">
+                    {{ editingId() ? 'Actualizar' : 'Guardar' }}
+                  </ion-button>
+                  @if (editingId()) {
+                    <ion-button type="button" fill="clear" expand="block" color="medium" (click)="resetForm()">
+                      Cancelar
+                    </ion-button>
+                  }
+                </div>
+              </form>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      }
+
+      <!-- LISTA DE CLIENTES -->
+      <ion-col size="12" [attr.size-lg]="isAdmin() ? 8 : 12">
+        <ion-list lines="full">
+          <ion-list-header>
+            <ion-label>Listado de Clientes ({{ clientes().length }})</ion-label>
+          </ion-list-header>
+
+          @for (cliente of clientes(); track cliente.id) {
+            <ion-item-sliding #sliding [disabled]="!isAdmin()">
+              <ion-item>
+                <ion-label>
+                  <h2>{{ cliente.nombre }}</h2>
+                  <p>
+                    <ion-icon name="location-outline"></ion-icon> {{ cliente.ciudad }}
+                    &nbsp;|&nbsp;
+                    <ion-icon name="calendar-outline"></ion-icon> {{ cliente.fecha_de_alta | date: 'dd/MM/yyyy' }}
+                  </p>
+                </ion-label>
+                <ion-note slot="end">#{{ cliente.id }}</ion-note>
+
+                <!-- Botones visibles en escritorio (Solo Administradores) -->
+                @if (isAdmin()) {
+                  <ion-buttons slot="end" class="desktop-actions">
+                    <ion-button color="primary" (click)="editCliente(cliente)" aria-label="Editar">
+                      <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button color="danger" (click)="confirmDelete(cliente)" aria-label="Eliminar">
+                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </ion-buttons>
+                }
+              </ion-item>
+
+              <!-- Opciones al deslizar en móvil (Solo Administradores) -->
+              @if (isAdmin()) {
+                <ion-item-options side="end">
+                  <ion-item-option color="primary" (click)="editCliente(cliente, sliding)">
+                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                  </ion-item-option>
+                  <ion-item-option color="danger" (click)="confirmDelete(cliente, sliding)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-item-option>
+                </ion-item-options>
+              }
+            </ion-item-sliding>
+          } @empty {
+            <ion-item>
+              <ion-label color="medium">No hay clientes registrados.</ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-toast
+    [isOpen]="isToastOpen()"
+    [message]="toastMessage()"
+    duration="2000"
+    (didDismiss)="isToastOpen.set(false)">
+  </ion-toast>
+</ion-content>
