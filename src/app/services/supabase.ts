@@ -49,9 +49,10 @@ export class SupabaseService {
   }
 
   async logout() {
-    await this.supabase.auth.signOut();
+    // Primero se limpia la interfaz y luego se cierra la sesión en Supabase
     this.currentUser.set(null);
     this.userRole.set(null);
+    await this.supabase.auth.signOut();
   }
 
   // Lee el rol de la tabla profiles. Si no hay fila, el usuario es 'user' (solo lectura)
