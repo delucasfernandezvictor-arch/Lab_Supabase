@@ -1,55 +1,52 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Lab Supabase - Acceso</ion-title>
+    <ion-title>Iniciar sesión</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancelar()" aria-label="Cerrar">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-grid>
-    <ion-row class="ion-justify-content-center">
-      <ion-col size="12" size-md="6" size-lg="4">
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Iniciar sesión</ion-card-title>
-            <ion-card-subtitle>Supabase Auth (email + contraseña)</ion-card-subtitle>
-          </ion-card-header>
+  <div class="motivo">
+    <ion-icon name="lock-closed-outline"></ion-icon>
+    <p>{{ motivo }}</p>
+  </div>
 
-          <ion-card-content>
-            <form [formGroup]="loginForm" (ngSubmit)="login()">
-              <ion-input
-                class="ion-margin-bottom"
-                fill="outline"
-                label="Email"
-                labelPlacement="floating"
-                type="email"
-                autocomplete="email"
-                formControlName="email"
-                errorText="Introduce un email válido">
-              </ion-input>
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <ion-input
+      class="ion-margin-bottom"
+      fill="outline"
+      label="Email"
+      labelPlacement="floating"
+      type="email"
+      autocomplete="email"
+      formControlName="email"
+      errorText="Introduce un email válido">
+    </ion-input>
 
-              <ion-input
-                fill="outline"
-                label="Contraseña"
-                labelPlacement="floating"
-                type="password"
-                autocomplete="current-password"
-                formControlName="password"
-                errorText="Mínimo 6 caracteres">
-                <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-              </ion-input>
+    <ion-input
+      fill="outline"
+      label="Contraseña"
+      labelPlacement="floating"
+      type="password"
+      autocomplete="current-password"
+      formControlName="password"
+      errorText="Mínimo 6 caracteres">
+      <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+    </ion-input>
 
-              @if (errorMsg()) {
-                <ion-text color="danger"><p>{{ errorMsg() }}</p></ion-text>
-              }
+    @if (errorMsg()) {
+      <ion-text color="danger"><p>{{ errorMsg() }}</p></ion-text>
+    }
 
-              <ion-button class="ion-margin-top" type="submit" expand="block"
-                [disabled]="loginForm.invalid || loading()">
-                @if (loading()) { <ion-spinner name="crescent"></ion-spinner> } @else { Entrar }
-              </ion-button>
-            </form>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+    <ion-button class="ion-margin-top" type="submit" expand="block"
+      [disabled]="loginForm.invalid || loading()">
+      @if (loading()) { <ion-spinner name="crescent"></ion-spinner> } @else { Entrar }
+    </ion-button>
+  </form>
+
+  <ion-note class="ayuda">Usuario creado en Supabase Auth (Authentication → Users).</ion-note>
 </ion-content>

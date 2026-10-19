@@ -1,0 +1,53 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Galería (Supabase Storage)</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-grid>
+    <ion-row>
+      @if (cargando()) {
+        @for (i of [1, 2, 3]; track i) {
+          <ion-col size="12" size-md="6" size-lg="4">
+            <ion-card>
+              <ion-skeleton-text animated class="skeleton-img"></ion-skeleton-text>
+              <ion-card-header>
+                <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+              </ion-card-header>
+            </ion-card>
+          </ion-col>
+        }
+      } @else {
+        @for (img of imagenes(); track img.nombre) {
+          <ion-col size="12" size-md="6" size-lg="4">
+            <ion-card>
+              <a [href]="img.url" target="_blank" rel="noopener">
+                <ion-img [src]="img.url" [alt]="img.nombre"></ion-img>
+              </a>
+              <ion-card-header>
+                <ion-card-title>{{ img.nombre }}</ion-card-title>
+                <ion-card-subtitle>
+                  {{ img.tamano / 1024 | number: '1.0-1' }} KB · {{ img.created_at | date: 'dd/MM/yyyy HH:mm' }}
+                </ion-card-subtitle>
+              </ion-card-header>
+            </ion-card>
+          </ion-col>
+        } @empty {
+          <ion-col size="12" class="ion-text-center vacio">
+            <ion-icon name="image-outline"></ion-icon>
+            @if (errorMsg()) {
+              <ion-text color="danger"><p>{{ errorMsg() }}</p></ion-text>
+            } @else {
+              <p>No hay imágenes en el bucket <strong>galeria</strong>.</p>
+            }
+          </ion-col>
+        }
+      }
+    </ion-row>
+  </ion-grid>
+</ion-content>
